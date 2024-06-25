@@ -74,14 +74,14 @@ function run_session(decision_fn)
    for s=1, n_steps_per_session do
       time = time + 100
       local step_data = {inputs={}, outputs={}}
-      --printf("\tstep %i/%i", s, n_steps_per_session)
+      printf("\tstep %i/%i", s, n_steps_per_session)
 
       -- Step all servers
       for i, server in pairs(servers) do
          server:step(time)
          local stats = server:get_stats()
    
-         --printf("\t\tserver %i avg_latency: %f", i, stats[1])
+         printf("\t\tserver %i avg_latency: %f", i, stats[1])
    
          -- Gather all server stats into inputs
          for k, v in ipairs(stats) do
@@ -92,7 +92,7 @@ function run_session(decision_fn)
       -- Make decision
       step_data.raw_outputs = decision_fn(step_data.inputs)
       local decision_idx = outputs_to_idx(step_data.raw_outputs)
-      --printf("\t\tdecision: %i", decision_idx)
+      printf("\t\tdecision: %i", decision_idx)
 
       -- Calculate sum of avg latencies
       local avg_latency_sum = 0
@@ -133,7 +133,6 @@ function run_session(decision_fn)
       end
 
       -- Send request
-      -- TODO: send multiple requests here later
       servers[decision_idx]:send_request(make_request_obj(time))
 
       table.insert(training_data, step_data)
@@ -149,7 +148,7 @@ function run()
       printf("session %i/%i", sess, n_sessions)
       local training_data, lat = run_session(round_robin_decision_fn)
       rr_lat = lat
-      --print(inspect(training_data))
+      printf("training_data = %s .......", string.sub(inspect(training_data), 1, 1024))
       nn.train(balancer_net, training_data, {
          epochs = 250,
          learning_rate = 0.1,
